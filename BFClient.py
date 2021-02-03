@@ -144,9 +144,9 @@ class BFClient(object):
         if past_orders is not None and len(past_orders) != 0:
             last_order_found = False
             index = 0
-            while not last_order_found:
+            while not last_order_found: # todo
                 order_status = past_orders[index][13]
-                if "CANCELLED" in order_status:
+                if "CANCELED" in order_status:
                     index += 1
                 else:
                     last_order_found = True
