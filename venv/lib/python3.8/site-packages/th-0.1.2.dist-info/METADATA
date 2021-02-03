@@ -1,0 +1,104 @@
+Metadata-Version: 2.1
+Name: th
+Version: 0.1.2
+Summary: Safely accessing deeply nested values
+Home-page: https://github.com/nikitanovosibirsk/th
+Author: Nikita Tsvetkov
+Author-email: nikitanovosibirsk@yandex.com
+License: Apache-2.0
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Requires-Python: >=3.6.0
+Description-Content-Type: text/markdown
+Requires-Dist: niltype (<0.2,>=0.1)
+
+# th
+
+[![Codecov](https://img.shields.io/codecov/c/github/nikitanovosibirsk/th/master.svg?style=flat-square)](https://codecov.io/gh/nikitanovosibirsk/th)
+[![PyPI](https://img.shields.io/pypi/v/th.svg?style=flat-square)](https://pypi.python.org/pypi/th/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/th?style=flat-square)](https://pypi.python.org/pypi/th/)
+[![Python Version](https://img.shields.io/pypi/pyversions/th.svg?style=flat-square)](https://pypi.python.org/pypi/th/)
+
+## Overview
+
+```python
+username = response.body["users"][0]["name"]
+
+TypeError: 'NoneType' object is not subscriptable
+```
+
+becomes:
+
+```python
+from th import get, _
+username = get(response, _.body["users"][0]["name"])
+
+th.TypeError: _.body['users'][0]['name']
+              ^^^^^^^^^^^^^^^ inappropriate type (NoneType)
+```
+
+## Installation
+
+```sh
+pip3 install th
+```
+
+## Usage
+
+#### Default
+
+```python
+total = get(response, _.body["total"], default=0)
+# no exception
+```
+
+#### Verbose
+
+```python
+user = get(response.body, _["users"][4]["id"], verbose=True)
+
+th.IndexError: _['users'][4]['id']
+                          ^ out of range
+where _ is <class 'dict'>:
+{'users': [{'id': 1, 'name': 'Bob'},
+           {'id': 2, 'name': 'Alice'},
+           {'id': 3, 'name': 'Eve'}]}
+```
+
+## Examples
+
+```python
+AttributeError: 'Response' object has no attribute 'body'
+# ->
+th.AttributeError: _.body['users'][0]['name']
+                     ^^^^ does not exist
+```
+```python
+IndexError: list index out of range
+# ->
+th.IndexError: _.body['users'][0]['name']
+                               ^ out of range
+```
+```python
+KeyError: 'users'
+# ->
+th.KeyError: _.body['users'][0]['name']
+                    ^^^^^^^ does not exist
+```
+```python
+TypeError: list indices must be integers or slices, not NoneType
+# -> 
+th.TypeError: _.body['users'][None]['name']
+                              ^^^^ inappropriate type (NoneType)
+```
+```python
+TypeError: 'NoneType' object is not subscriptable
+# ->
+th.TypeError: _.body['users'][0]['name']
+              ^^^^^^^^^^^^^^^ inappropriate type (NoneType)
+```
+
+
