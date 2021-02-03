@@ -2,6 +2,8 @@ import time
 import hashlib
 import hmac
 import json
+from math import fabs
+
 import requests
 
 
@@ -120,14 +122,14 @@ class BFClient(object):
             resp = {}
             last_order = past_orders[index]
             order_status = last_order[13]
-            if "EXECUTED" not in order_status:
+            if "EXECUTED" not in order_status and "INSUFFICIENT BALANCE" not in order_status:
                 raise ValueError("Order status is: " + order_status)
             order_type = "BUY" if last_order[7] > 0 else "SELL"
-            resp['status'] = "ALL USD" if order_status == "SELL" else "ALL BTC"
+            resp['status'] = "ALL USD" if order_type == "SELL" else "ALL BTC"
             resp['order_id'] = last_order[0]
             resp['order_type'] = order_type
             resp['order_price'] = last_order[16]
-            resp['order_amount'] = last_order[7]
+            resp['order_amount'] = fabs(last_order[7])
             return resp
         # Case if we are starting clean
         return {
