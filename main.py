@@ -101,6 +101,7 @@ def start():
             _print(f"Order executed")
             state = SUBMIT_SELL_ORDER
         elif state == SUBMIT_SELL_ORDER:
+            _, _, _, _, _, btc_available_amount = get_state()
             minimum_sell_price = (var_minimum_gain + last_bought_amount*last_bought_price*(1+trade_fee)) / (btc_available_amount*(1-trade_fee))
             minimum_sell_price = _round(minimum_sell_price)
             ticker_value = bfc.get_price(ticker)
