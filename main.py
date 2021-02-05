@@ -120,20 +120,14 @@ def start():
             #     state = SUBMIT_SELL_ORDER
             #     break
             _print(f"Waiting for sell order {order_id} to execute")
-            executed = bfc.wait_until_order_executed(order_id, sell_order_timeout_sec)
-            if not executed:
-                var_minimum_gain = reduce_gain(var_minimum_gain)
-                bfc.cancel_order(order_id)
-                state = SUBMIT_SELL_ORDER
-                _print(f"Sell timed_out, cancelling order {order_id} & reducing minimum_gain to USD$={var_minimum_gain}")
-            else:
-                _print("Order executed")
-                cycle_fees += fee
-                gain = last_bought_amount * last_bought_price - fiat_available - cycle_fees
-                total_gain += gain
-                total_fees += cycle_fees
-                _print(f"Cycle gain=USD${gain} total_gain=USD{total_gain} cycle_fee=USD{cycle_fees} total_fees=USD{total_fees}")
-                state = WAIT_FOR_PRICE_TO_DROP
+            bfc.wait_until_order_executed(order_id)
+            _print("Order executed")
+            cycle_fees += fee
+            gain = last_bought_amount * last_bought_price - fiat_available - cycle_fees
+            total_gain += gain
+            total_fees += cycle_fees
+            _print(f"Cycle gain=USD${gain} total_gain=USD{total_gain} cycle_fee=USD{cycle_fees} total_fees=USD{total_fees}")
+            state = WAIT_FOR_PRICE_TO_DROP
         elif WAIT_FOR_PRICE_TO_DROP:
             # We will wait a maximum of 5 minutes
             seconds_left = 5 * 60
