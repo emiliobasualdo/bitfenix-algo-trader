@@ -18,9 +18,8 @@ price_interval_sleep = args.price_interval_seconds
 minimum_gain = args.minimum_gain
 trade_fee = 0.002
 ticker = symbol[1:]  # tBTCUSD -> BTCUSD
-_30_MINUTES = 30 * 60
-sell_order_timeout_sec = _30_MINUTES
-sell_order_timeout_mill = sell_order_timeout_sec * 1000
+_5_hours = 5 * 60 * 60
+sell_order_timeout_mill = _5_hours * 1000
 
 bfc = BFClient(ticker)
 
@@ -61,8 +60,8 @@ def set_ticker(_ticker, price):
     tickers[_ticker] = price
 
 def buy(volume):
-    price = _round(bfc.get_price(ticker) * 0.99999)
-    amount = volume/ price  # amount does not need to be rounded
+    price = _round(bfc.get_price(ticker) * 0.9999999)
+    amount = volume / price  # amount does not need to be rounded
     fee = price * amount * trade_fee
     _print(f"Placing buy order for {amount} BTC at USD${price} paying USD${fee} fee")
     _, resp = bfc.exchange("buy", price, amount, symbol)
@@ -86,11 +85,9 @@ def start():
     _print()
     total_gain = total_fees = cycle_fees = fee = 0
     state, order_id, last_bought_price, last_bought_amount, order_creation, btc_available_amount = get_state()
-    var_minimum_gain = minimum_gain
     fiat_available = max_fiat
     while total_gain < 500:
         if state == ALL_USD:
-            var_minimum_gain = minimum_gain  # reset value
             # We buy as much as we can
             last_bought_price, last_bought_amount, fee, order_id = buy(fiat_available)
             cycle_fees += fee
@@ -102,7 +99,7 @@ def start():
             state = SUBMIT_SELL_ORDER
         elif state == SUBMIT_SELL_ORDER:
             _, _, _, _, _, btc_available_amount = get_state()
-            minimum_sell_price = (var_minimum_gain + last_bought_amount*last_bought_price*(1+trade_fee)) / (btc_available_amount*(1-trade_fee))
+            minimum_sell_price = (minimum_gain + fiat_available*(1+trade_fee)) / (btc_available_amount*(1-trade_fee))
             minimum_sell_price = _round(minimum_sell_price)
             ticker_value = bfc.get_price(ticker)
             # if we come back ten days later an the price is higher than our minimum, we sell to the higher price
@@ -112,13 +109,13 @@ def start():
                 sell_price = minimum_sell_price
             last_bought_price, last_bought_amount, fee, order_id, order_creation = sell(sell_price, btc_available_amount)
             state = WATCH_SELL_ORDER
-        elif WATCH_SELL_ORDER:
+        elif state == WATCH_SELL_ORDER:
             # if we come back ten days later, we cancel the order and emmit a new order to an adjusted minimum price
-            # if time.time() - order_creation > sell_order_timeout_mill:
-            #     bfc.cancel_order(order_id)
-            #     var_minimum_gain = reduce_gain(var_minimum_gain)
-            #     state = SUBMIT_SELL_ORDER
-            #     break
+            if time.time() - order_creation > sell_order_timeout_mill:
+                _print(f"Waiting for sell order {order_id} to execute")
+                bfc.cancel_order(order_id)
+                state = SUBMIT_SELL_ORDER
+                break
             _print(f"Waiting for sell order {order_id} to execute")
             bfc.wait_until_order_executed(order_id)
             _print("Order executed")
@@ -128,7 +125,7 @@ def start():
             total_fees += cycle_fees
             _print(f"Cycle gain=USD${gain} total_gain=USD{total_gain} cycle_fee=USD{cycle_fees} total_fees=USD{total_fees}")
             state = WAIT_FOR_PRICE_TO_DROP
-        elif WAIT_FOR_PRICE_TO_DROP:
+        elif state == WAIT_FOR_PRICE_TO_DROP:
             # We will wait a maximum of 5 minutes
             seconds_left = 5 * 60
             ticker_value = bfc.get_price(ticker)
@@ -142,6 +139,7 @@ def start():
                 _print("Price drop timeout")
             state = ALL_USD
     _print(f"Exiting state={state} total_gain={total_gain} total_fees={total_fees}")
+    exit(0)
 
 if __name__ == '__main__':
     start()
