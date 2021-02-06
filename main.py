@@ -99,7 +99,7 @@ def start():
             state = SUBMIT_SELL_ORDER
         elif state == SUBMIT_SELL_ORDER:
             _, _, _, _, _, btc_available_amount = get_state()
-            minimum_sell_price = (minimum_gain + fiat_available*(1+trade_fee)) / (btc_available_amount*(1-trade_fee))
+            minimum_sell_price = (minimum_gain + fiat_available*(1+trade_fee)) * last_bought_price / (fiat_available*(1-trade_fee))
             minimum_sell_price = _round(minimum_sell_price)
             ticker_value = bfc.get_price(ticker)
             # if we come back ten days later an the price is higher than our minimum, we sell to the higher price
