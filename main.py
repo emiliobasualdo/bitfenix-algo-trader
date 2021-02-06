@@ -123,22 +123,23 @@ def start():
             gain = last_bought_amount * last_bought_price - fiat_available - cycle_fees
             total_gain += gain
             total_fees += cycle_fees
-            _print(f"Cycle gain=USD${gain} total_gain=USD{total_gain} cycle_fee=USD{cycle_fees} total_fees=USD{total_fees}")
+            _print(f"Cycle gain=USD${gain} total_gain=USD${total_gain} cycle_fee=USD${cycle_fees} total_fees=USD${total_fees}")
             state = WAIT_FOR_PRICE_TO_DROP
         elif state == WAIT_FOR_PRICE_TO_DROP:
-            # We will wait a maximum of 5 minutes
-            seconds_left = 5 * 60
+            # We will wait a maximum of seconds_left seconds
+            seconds_left = 1 * 60
+            _print(f"Waiting {seconds_left}sec for price drop")
             ticker_value = bfc.get_price(ticker)
             while seconds_left > 0 and ticker_value >= last_bought_price:
-                time.sleep(price_interval_sleep)
-                seconds_left -= price_interval_sleep
+                time.sleep(1)
+                seconds_left -= 1
                 ticker_value = bfc.get_price(ticker)
             if seconds_left > 0:
-                _print(f"Found price drop at=USD{ticker_value}")
+                _print(f"Found price drop at=USD${ticker_value}")
             else:
                 _print("Price drop timeout")
             state = ALL_USD
-    _print(f"Exiting state={state} total_gain={total_gain} total_fees={total_fees}")
+    _print(f"Exiting state={state} total_gain=USD${total_gain} total_fees=USD${total_fees}")
     exit(0)
 
 if __name__ == '__main__':
