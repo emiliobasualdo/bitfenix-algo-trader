@@ -1,9 +1,17 @@
-# bitfenix-algo-trader
+# Bitfinex Algo T-rader
+
+## Requirements
+python3.8
+
+## Run
 ```
-pip freeze > requirements.txt.
-```
-```
+cd algoTrading
 python3.8 -m venv ./venv
 pip3.8 install -r requirements.txt
 ```
- 
+
+## Commit
+```
+pip3 freeze > requirements.txt.
+git ......
+``` 
